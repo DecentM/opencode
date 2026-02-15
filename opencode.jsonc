@@ -1,0 +1,155 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [],
+  "autoupdate": false,
+  "snapshot": true,
+  "logLevel": "WARN",
+  "default_agent": "coordinator",
+  "keybinds": {},
+  "tui": {
+    "scroll_speed": 3,
+    "scroll_acceleration": {
+      "enabled": false
+    },
+    "diff_style": "auto"
+  },
+  "theme": "ariake-dark",
+
+  "username": "{env:MY_NAME}",
+  "small_model": "openrouter/minimax/minimax-m1",
+  "enabled_providers": ["openrouter"],
+  "watcher": {
+    "ignore": ["node_modules/**", "dist/**", ".git/**"]
+  },
+
+  "share": "disabled",
+  "permission": {
+    "*": "deny"
+  },
+  "instructions": [
+    "{env:OPENCODE_CONFIG_DIR}/rules/all.md",
+    "{env:PWD}/AGENTS.md",
+    "{env:PWD}/.cursor/rules/*.{md,mdx}"
+  ],
+  "agent": {
+    "general": {
+      "disable": true
+    },
+    "summary": {
+      "disable": true
+    },
+    "title": {
+      "model": "openrouter/minimax/minimax-m1"
+    },
+    "writer": {
+      "disable": true
+    },
+    "plan": {
+      "disable": true
+    },
+    "build": {
+      "disable": true,
+    },
+    "architect": {
+      "disable": {env:DISABLE_ARCHITECT}
+    },
+    "coder": {
+      "disable": {env:DISABLE_CODER}
+    },
+    "communicator": {
+      "disable": {env:DISABLE_COMMUNICATOR}
+    },
+    "devops": {
+      "disable": {env:DISABLE_DEVOPS}
+    },
+    "explore": {
+      "disable": {env:DISABLE_EXPLORE}
+    },
+    "git": {
+      "disable": {env:DISABLE_GIT}
+    },
+    "math": {
+      "disable": {env:DISABLE_MATH}
+    },
+    "personal-assistant": {
+      "disable": {env:DISABLE_PERSONAL_ASSISTANT}
+    },
+    "researcher": {
+      "disable": {env:DISABLE_RESEARCHER}
+    },
+    "reviewer": {
+      "disable": {env:DISABLE_REVIEWER}
+    }
+  },
+  "mcp": {
+    "sequentialthinking": {
+      "type": "local",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "-i",
+        "--network=none",
+        "--memory=512m",
+        "--cpus=1",
+        "mcp/sequentialthinking"
+      ],
+      "enabled": true
+    },
+
+    "time": {
+      "type": "local",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "-i",
+        "--network=none",
+        "--memory=512m",
+        "--cpus=1",
+        "mcp/time"
+      ],
+      "enabled": true
+    },
+
+    "github": {
+      "type": "remote",
+      "url": "https://api.githubcopilot.com/mcp",
+      "enabled": {env:FEATURE_GITHUB},
+      "oauth": false,
+      "headers": {
+        "Authorization": "Bearer {env:GITHUB_TOKEN}"
+      }
+    },
+
+    "flaresolverr": {
+      "type": "local",
+      "command": [
+        "bash",
+        "-c",
+        "docker run --rm -i --init --shm-size=2g --memory=2g --cpus=2 decentm-opencode-flaresolverr"
+      ],
+      "enabled": {env:FEATURE_WEB_SCRAPING}
+    },
+
+    "playwright-headed": {
+      "type": "local",
+      "command": [
+        "bash",
+        "-c",
+        "docker run --rm -i --init --user root --shm-size=2g --memory=2g --cpus=2 -v opencode-playwright-output:/data/output -v opencode-playwright-userdata:/data/userdata -e PLAYWRIGHT_MCP_OUTPUT_DIR=/data/output -e PLAYWRIGHT_HEADLESS=false -e WAYLAND_DISPLAY=$WAYLAND_DISPLAY -e XDG_RUNTIME_DIR=/run/user/$(id -u) -e XDG_SESSION_TYPE=wayland -e DISPLAY=$DISPLAY -e XAUTHORITY=/tmp/.Xauthority -v ${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY}:/run/user/$(id -u)/${WAYLAND_DISPLAY}:rw -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v ${HOME}/.Xauthority:/tmp/.Xauthority:ro --device /dev/dri:/dev/dri decentm-opencode-playwright"
+      ],
+      "enabled": {env:FEATURE_WEB_SCRAPING}
+    },
+
+    "playwright-headless": {
+      "type": "local",
+      "command": [
+        "bash",
+        "-c",
+        "docker run --rm -i --init --user root --shm-size=1g --memory=1g --cpus=1 -v opencode-playwright-output:/data/output -v opencode-playwright-userdata:/data/userdata -e PLAYWRIGHT_MCP_OUTPUT_DIR=/data/output -e PLAYWRIGHT_HEADLESS=true decentm-opencode-playwright"
+      ],
+      "enabled": {env:FEATURE_WEB_SCRAPING_HEADLESS}
+    },
+  }
+}
