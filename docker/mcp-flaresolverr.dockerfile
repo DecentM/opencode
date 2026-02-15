@@ -1,5 +1,5 @@
 # Stage 1: Build dummy packages (from Flaresolverr)
-FROM python:3.13-slim-bookworm AS builder
+FROM python:3.14-slim-bookworm AS builder
 
 # Build dummy packages to skip installing them and their dependencies
 RUN apt-get update \
@@ -14,7 +14,7 @@ RUN apt-get update \
     && mv adwaita-icon-theme_*.deb /adwaita-icon-theme.deb
 
 # Stage 2: Final image
-FROM python:3.13-slim-bookworm
+FROM python:3.14-slim-bookworm
 
 # Copy dummy packages from builder
 COPY --from=builder /*.deb /
