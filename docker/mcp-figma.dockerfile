@@ -1,6 +1,6 @@
 # Figma MCP server using Framelink (figma-developer-mcp)
 # Lightweight Node.js container for API-only operations
-FROM node:22-slim
+FROM node:25-slim
 
 # Install dumb-init for proper signal handling
 RUN apt-get update \
