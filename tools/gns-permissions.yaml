@@ -1,0 +1,350 @@
+# GNS operation permissions for the gns custom tool
+# Patterns are matched in order - first match wins
+# Default action if no pattern matches: deny
+#
+# Format:
+#   pattern: glob pattern (* matches any characters) - for single patterns
+#   patterns: array of glob patterns - for multiple patterns with same decision/reason
+#   decision: allow | deny
+#   reason: explanation shown to model when denied (helps it adapt)
+#
+# Operation pattern format:
+#   {command} {subcommand}
+#   Examples:
+#     - get
+#     - set
+#     - auth status
+#     - type list
+#
+# Constraints (for allowed operations):
+#   constraints: array of constraints (all must pass)
+#
+# Constraint types:
+#   keyspace_pattern  - restrict operations to specific keyspace patterns
+#                       options: value: ["user.*", "projects.*", "ai.*", "gns.*"]
+#   no_force          - block --force flag
+#   dry_run_only      - only allow with --dry-run flag
+
+default: deny
+default_reason: "GNS operation not in allowlist - ask the user to run this command"
+
+rules:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Read Operations - allow by default (safe)
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  # Core read operations
+  - patterns:
+      - "get"
+      - "get *"
+      - "list"
+      - "list *"
+      - "search"
+      - "search *"
+      - "traverse"
+      - "traverse *"
+      - "whoami"
+      - "whoami *"
+      - "batch-get"
+      - "batch-get *"
+      - "key-history"
+      - "key-history *"
+      - "capabilities"
+      - "capabilities *"
+      - "get-paths"
+      - "get-paths *"
+    decision: allow
+
+  # Auth read operations
+  - patterns:
+      - "auth status"
+      - "auth status *"
+      - "auth whoami"
+      - "auth whoami *"
+    decision: allow
+
+  # Type read operations
+  - patterns:
+      - "type list"
+      - "type list *"
+      - "type schema"
+      - "type schema *"
+      - "type validate"
+      - "type validate *"
+      - "type infer"
+      - "type infer *"
+      - "type analyze"
+      - "type analyze *"
+      - "type validate-keyspace"
+      - "type validate-keyspace *"
+    decision: allow
+
+  # Config read operations
+  - patterns:
+      - "config get"
+      - "config get *"
+      - "config show"
+      - "config show *"
+      - "config path"
+      - "config path *"
+    decision: allow
+
+  # Help and utility commands
+  - patterns:
+      - "version"
+      - "version *"
+      - "help"
+      - "help *"
+      - "completion"
+      - "completion *"
+    decision: allow
+
+  # Pipe read operations
+  - patterns:
+      - "pipe info"
+      - "pipe info *"
+      - "pipe read"
+      - "pipe read *"
+    decision: allow
+
+  # Mount read operations
+  - patterns:
+      - "mount list"
+      - "mount list *"
+      - "list-mounts"
+      - "list-mounts *"
+    decision: allow
+
+  # Admin read/diagnostic operations
+  - patterns:
+      - "admin stats"
+      - "admin stats *"
+      - "admin audit"
+      - "admin audit *"
+      - "admin permissions"
+      - "admin permissions *"
+      - "admin test-pattern"
+      - "admin test-pattern *"
+      - "admin test-permission"
+      - "admin test-permission *"
+      - "admin validate-pattern"
+      - "admin validate-pattern *"
+    decision: allow
+
+  # Tag read operations
+  - patterns:
+      - "tag list"
+      - "tag list *"
+      - "tag-list"
+      - "tag-list *"
+    decision: allow
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Write Operations - all denied (read-only mode)
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  # Set operation - constrained to allowed keyspaces
+  - patterns:
+      - "set"
+      - "set *"
+    decision: deny
+    reason: "Set operations are disabled - ask the user to run this comman"
+
+  # Link operation - allow
+  - patterns:
+      - "link"
+      - "link *"
+    decision: deny
+    reason: "Link operations are disabled - ask the user to run this command"
+
+  # Tag edit operations - allow
+  - patterns:
+      - "tag edit"
+      - "tag edit *"
+      - "tag-edit"
+      - "tag-edit *"
+    decision: deny
+    reason: "Tag editing is disabled - ask the user to run this command"
+
+  # Batch write operations - constrained
+  - patterns:
+      - "batch-set"
+      - "batch-set *"
+      - "batch-link"
+      - "batch-link *"
+      - "batch-tag"
+      - "batch-tag *"
+    decision: deny
+    reason: "Batch write operations are disabled - ask the user to run this command"
+
+  # Pipe create/write - allow
+  - patterns:
+      - "pipe create"
+      - "pipe create *"
+      - "pipe write"
+      - "pipe write *"
+    decision: deny
+    reason: "Pipe operations are disabled - ask the user to run this command"
+
+  # Move/rename operations - denied
+  - patterns:
+      - "mv"
+      - "mv *"
+      - "move"
+      - "move *"
+      - "rename"
+      - "rename *"
+    decision: deny
+    reason: "Move/rename operations are disabled - ask the user to run this command"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Delete Operations - deny by default (require user confirmation)
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  - patterns:
+      - "delete"
+      - "delete *"
+      - "rm"
+      - "rm *"
+      - "del"
+      - "del *"
+    decision: deny
+    reason: "Deletion requires user confirmation - the user needs to run this command"
+
+  - patterns:
+      - "batch-delete"
+      - "batch-delete *"
+    decision: deny
+    reason: "Batch deletion requires user confirmation - the user needs to run this command"
+
+  - patterns:
+      - "delete-pattern"
+      - "delete-pattern *"
+    decision: deny
+    reason: "Pattern-based deletion is dangerous and requires user confirmation"
+
+  - patterns:
+      - "unlink"
+      - "unlink *"
+      - "batch-unlink"
+      - "batch-unlink *"
+    decision: deny
+    reason: "Unlink operations require user confirmation - the user needs to run this command"
+
+  - patterns:
+      - "cleanup-links"
+      - "cleanup-links *"
+    decision: deny
+    reason: "Cleanup operations require user confirmation - the user needs to run this command"
+
+  - patterns:
+      - "pipe delete"
+      - "pipe delete *"
+    decision: deny
+    reason: "Pipe deletion requires user confirmation - the user needs to run this command"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Admin Operations - deny by default
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  - patterns:
+      - "admin acls"
+      - "admin acls *"
+      - "admin agent"
+      - "admin agent *"
+      - "admin groups"
+      - "admin groups *"
+      - "admin service-accounts"
+      - "admin service-accounts *"
+      - "admin teams"
+      - "admin teams *"
+      - "admin tokens"
+      - "admin tokens *"
+      - "admin users"
+      - "admin users *"
+      - "admin tag-policies"
+      - "admin tag-policies *"
+      - "admin index"
+      - "admin index *"
+      - "admin my-tokens"
+      - "admin my-tokens *"
+    decision: deny
+    reason: "Admin operations require user confirmation - the user needs to run this command"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Auth Operations - deny mutations
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  - patterns:
+      - "auth login"
+      - "auth login *"
+      - "auth logout"
+      - "auth logout *"
+      - "auth token"
+      - "auth token *"
+    decision: deny
+    reason: "Authentication changes require user action - the user needs to run this command"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Config Operations - deny mutations
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  - patterns:
+      - "config set"
+      - "config set *"
+    decision: deny
+    reason: "Config changes require user action - the user needs to run this command"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Mount Operations - deny mutations
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  - patterns:
+      - "mount add"
+      - "mount add *"
+      - "mount alias"
+      - "mount alias *"
+      - "mount gcs"
+      - "mount gcs *"
+      - "mount http"
+      - "mount http *"
+      - "mount sync"
+      - "mount sync *"
+      - "mount unmount"
+      - "mount unmount *"
+      - "unmount"
+      - "unmount *"
+    decision: deny
+    reason: "Mount operations require user confirmation - the user needs to run this command"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Type Operations - deny write
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  - patterns:
+      - "type register"
+      - "type register *"
+      - "type assign"
+      - "type assign *"
+    decision: deny
+    reason: "Type registration requires user confirmation - the user needs to run this command"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Dangerous Operations - always deny
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  - patterns:
+      - "update-where"
+      - "update-where *"
+    decision: deny
+    reason: "Bulk updates are dangerous - the user needs to run this command"
+
+  - patterns:
+      - "setup"
+      - "setup *"
+      - "update"
+      - "update *"
+      - "migrations"
+      - "migrations *"
+    decision: deny
+    reason: "System changes require user action - the user needs to run this command"

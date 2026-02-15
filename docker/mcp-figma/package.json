@@ -1,0 +1,9 @@
+{
+  "name": "mcp-figma",
+  "version": "1.0.0",
+  "description": "Figma MCP server using Framelink",
+  "type": "module",
+  "dependencies": {
+    "figma-developer-mcp": "latest"
+  }
+}

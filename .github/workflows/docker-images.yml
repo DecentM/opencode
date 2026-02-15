@@ -1,0 +1,107 @@
+name: Docker Precache
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  schedule:
+    - cron: "0 2 * * 1" # Monday at 2 AM UTC
+  workflow_dispatch:
+
+# Only one workflow per branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: base-default
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: mcp-playwright
+            dockerfile: docker/mcp-playwright.dockerfile
+            image: ghcr.io/chesscom/opencode-playwright
+            context: docker
+
+          - name: tool-node
+            dockerfile: docker/tool-node.dockerfile
+            image: ghcr.io/chesscom/opencode-node-sandbox
+            context: docker
+
+          - name: tool-python
+            dockerfile: docker/tool-python.dockerfile
+            image: ghcr.io/chesscom/opencode-python-sandbox
+            context: docker
+
+          - name: tool-tesseract
+            dockerfile: docker/tool-tesseract.dockerfile
+            image: ghcr.io/chesscom/opencode-tesseract
+            context: docker
+
+          - name: mcp-flaresolverr
+            dockerfile: docker/mcp-flaresolverr.dockerfile
+            image: ghcr.io/chesscom/opencode-flaresolverr
+            context: docker
+
+          - name: mcp-figma
+            dockerfile: docker/mcp-figma.dockerfile
+            image: ghcr.io/chesscom/opencode-figma
+            context: docker
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # QEMU enables building for multiple CPU architectures
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # Buildx provides advanced build features including caching
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Authenticate with GHCR using the built-in GITHUB_TOKEN
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Extract metadata for proper OCI image labels and tags
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ matrix.image }}
+          tags: |
+            # Tag with 'latest' on main branch
+            type=raw,value=latest,enable={{is_default_branch}}
+            # Tag with short SHA for all builds
+            type=sha,prefix=sha-,format=long
+
+      # Build the image (and push if on main branch)
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64,linux/arm64
+          # Only push on main branch, not PRs or other events
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Cache layers in GHCR for faster subsequent builds
+          cache-from: type=registry,ref=${{ matrix.image }}:buildcache
+          cache-to: type=registry,ref=${{ matrix.image }}:buildcache,mode=max
+          # Enable BuildKit for better performance and features
+          provenance: false
