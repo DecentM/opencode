@@ -65,3 +65,16 @@
   - No manual axes, legends, titles, or decorations - let the library handle it or omit them
   - **Trust the tool output** - it is NOT corrupted. If it looks wrong, that's how it renders. Do not "fix" or redraw it manually.
   - If the library fails or produces unusable output, say so and move on - do NOT attempt a manual version
+
+## memory
+- Bank and retrieve memory eagerly, even without prompt
+- On session start, search for pertinent data
+- Before stopping, bank persistent learnings, and only persistent ones. DO NOT bank information that will change short-term.
+
+## homeassistant
+- Remote MCP tool connecting to Home Assistant instance
+- Used for home automation control (lights, switches, sensors, etc.)
+
+## grafana
+- Remote MCP tool for reading sensor data
+- Used for querying Grafana metrics and sensor data

@@ -9,6 +9,7 @@ permission:
   # MCPs
   sequentialthinking*: allow
   time*: allow
+  memory*: allow
   # Agent-specific
   task:
     "*": allow
@@ -96,6 +97,9 @@ Otherwise                             -> You may handle directly
 | playwright-* | researcher, personal-assistant | Browser access: user is logged in |
 | python | coder, explore, math, researcher, reviewer | Python code execution in sandbox |
 | tesseract | coder, explore, math, researcher, reviewer | OCR text extraction from images |
+| memory | coder, devops, explore, researcher | MCP memory tool (Docker-based) |
+| homeassistant | personal-assistant, devops | Home automation |
+| grafana | researcher, devops | Metrics/monitoring |
 
 ## Why Delegation Matters
 

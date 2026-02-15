@@ -15,6 +15,9 @@ permission:
     ".env.*": deny
     ".env.example": allow
   # MCPs
+  grafana*: allow
+  homeassistant*: allow
+  memory*: allow
   sequentialthinking*: allow
   time*: allow
   # Agent-specific

@@ -15,6 +15,7 @@ permission:
     ".env.*": deny
     ".env.example": allow
   # MCPs
+  memory*: allow
   sequentialthinking*: allow
   time*: allow
   # Agent-specific

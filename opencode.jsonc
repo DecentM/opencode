@@ -112,6 +112,23 @@
       "enabled": true
     },
 
+    "memory": {
+      "type": "local",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "-i",
+        "--network=none",
+        "--memory=512m",
+        "--cpus=1",
+        "-v",
+        "mcp-memory:/app/dist",
+        "mcp/memory"
+      ],
+      "enabled": true
+    },
+
     "github": {
       "type": "remote",
       "url": "https://api.githubcopilot.com/mcp",
@@ -151,5 +168,20 @@
       ],
       "enabled": {env:FEATURE_WEB_SCRAPING_HEADLESS}
     },
+
+     "homeassistant": {
+      "type": "remote",
+      "url": "https://hass.cluster.arpa/api/mcp",
+      "enabled": {env:FEATURE_HOMEASSISTANT},
+      "headers": {
+        "Authorization": "Bearer {env:HOMEASSISTANT_TOKEN}"
+      }
+    },
+
+     "grafana": {
+      "type": "remote",
+      "url": "https://mcp-grafana.cluster.arpa/sse",
+      "enabled": {env:FEATURE_GRAFANA}
+    }
   }
 }

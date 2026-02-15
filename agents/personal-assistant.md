@@ -4,6 +4,7 @@ mode: subagent
 temperature: 0.5
 permission:
   # Planning and time
+  homeassistant*: allow
   sequentialthinking*: allow
   time*: allow
   todoread: allow
