@@ -64,3 +64,21 @@ export const TIME_TOOL: PluginToolDefinition = {
   instructions: `## time
 - Use time to get and manipulate time and time zones`,
 }
+
+export const TTS_TOOL: PluginToolDefinition = {
+  kind: 'plugin',
+  permission: { tts: 'allow' },
+  prompt: `## tts (text-to-speech via pockettts)
+- Convert text to speech using Kyutai Labs pockettts CLI
+- Supports multiple languages (en-US, en-GB, fr-FR, de-DE, etc.)
+- Adjustable speech speed from 0.5x (slow) to 2.0x (fast)
+- Output formats: WAV, MP3, OGG
+- Fresh process per execution (parallel-safe)
+- Maximum execution time: 30 seconds by default`,
+  instructions: `## tts (text-to-speech via pockettts)
+- Convert text to speech using the pockettts CLI tool
+- Specify output path with a supported extension (.wav, .mp3, .ogg)
+- Use voice parameter for language/accent selection
+- Adjust speed for faster or slower speech
+- Tool spawns a fresh process per call (parallel-safe)`,
+}

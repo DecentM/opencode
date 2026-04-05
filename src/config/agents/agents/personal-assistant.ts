@@ -32,7 +32,7 @@ export const PERSONAL_ASSISTANT: AgentDefinition = {
   description: 'Full-service personal assistant via browser automation',
   mode: 'subagent',
   temperature: 0.5,
-  tools: ['pw'],
+  tools: ['pw', 'tts'],
   basePermission: {
     task: {
       '*': 'deny',

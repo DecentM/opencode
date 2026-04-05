@@ -113,7 +113,7 @@ export const COORDINATOR: AgentDefinition = {
     'Primary coordinator agent that delegates work to specialized subagents while maintaining read-only access to the codebase',
   mode: 'primary',
   temperature: 0.2,
-  tools: ['time'],
+  tools: ['time', 'tts'],
   basePermission: {
     question: 'allow',
     task: {
