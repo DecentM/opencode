@@ -3,7 +3,6 @@ description: DevOps and infrastructure specialist for containers, CI/CD, cloud r
 mode: subagent
 temperature: 0.2
 permission:
-  # Base tools
   glob: allow
   grep: allow
   list: allow
@@ -14,13 +13,11 @@ permission:
     ".env": deny
     ".env.*": deny
     ".env.example": allow
-  # MCPs
   grafana*: allow
   homeassistant*: allow
   memory*: allow
   sequentialthinking*: allow
   time*: allow
-  # Agent-specific
   edit:
     "*": allow
     ".env": deny
@@ -30,14 +27,12 @@ permission:
   codesearch: allow
   sh: allow
   docker: allow
-  # Web scraping
   flaresolverr: allow
   flaresolverr*: allow
   playwright: allow
   playwright*: allow
   playwright-*_take_screenshot: deny
   playwright-*_snapshot: deny
-  # Profile MCPs (work) - defined in profile jsonc
   github_*: allow
   task:
     "*": allow

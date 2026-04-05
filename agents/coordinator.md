@@ -3,14 +3,11 @@ description: Primary coordinator agent that delegates work to specialized subage
 mode: primary
 temperature: 0.2
 permission:
-  # Base tools
   todoread: allow
   todowrite: allow
-  # MCPs
   sequentialthinking*: allow
   time*: allow
   memory*: allow
-  # Agent-specific
   task:
     "*": allow
     coordinator: deny

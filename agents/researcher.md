@@ -3,7 +3,6 @@ description: Information specialist for web research, data scraping, analysis, a
 mode: subagent
 temperature: 0.3
 permission:
-  # Base tools
   glob: allow
   grep: allow
   list: allow
@@ -14,12 +13,10 @@ permission:
     ".env": deny
     ".env.*": deny
     ".env.example": allow
-  # MCPs
   memory*: allow
   grafana*: allow
   sequentialthinking*: allow
   time*: allow
-  # Agent-specific
   codesearch: allow
   sh: allow
   docker:
@@ -34,7 +31,6 @@ permission:
   node: allow
   python: allow
   tesseract: allow
-  # Web scraping
   flaresolverr: allow
   flaresolverr*: allow
   playwright: allow

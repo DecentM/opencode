@@ -3,7 +3,6 @@ description: Code analyst for reviewing quality, security vulnerabilities, and a
 mode: subagent
 temperature: 0.1
 permission:
-  # Base tools
   glob: allow
   grep: allow
   list: allow
@@ -14,18 +13,15 @@ permission:
     ".env": deny
     ".env.*": deny
     ".env.example": allow
-  # MCPs
   memory*: allow
   sequentialthinking*: allow
   time*: allow
-  # Agent-specific
   lsp: allow
   codesearch: allow
   node: allow
   python: allow
   tesseract: allow
   task: deny
-  # Profile MCPs (work) - defined in profile jsonc
   github_get*: allow
   github_list*: allow
   github_pull_request_read: allow

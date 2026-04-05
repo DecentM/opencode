@@ -3,7 +3,6 @@ description: Technical communicator for documentation, creative storytelling, id
 mode: subagent
 temperature: 0.6
 permission:
-  # Base tools
   glob: allow
   grep: allow
   list: allow
@@ -14,11 +13,9 @@ permission:
     ".env": deny
     ".env.*": deny
     ".env.example": allow
-  # MCPs
   memory*: allow
   sequentialthinking*: allow
   time*: allow
-  # Agent-specific
   task:
     "*": allow
     communicator: deny
@@ -29,14 +26,12 @@ permission:
     ".env.example": allow
   lsp: allow
   codesearch: allow
-  # Web scraping
   flaresolverr: allow
   flaresolverr*: allow
   playwright: allow
   playwright*: allow
   playwright-*_take_screenshot: deny
   playwright-*_snapshot: deny
-  # Full access MCPs
   github_*: allow
 ---
 

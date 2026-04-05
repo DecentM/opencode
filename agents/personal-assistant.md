@@ -3,22 +3,15 @@ description: Full-service personal assistant via browser automation
 mode: subagent
 temperature: 0.5
 permission:
-  # Planning and time
   homeassistant*: allow
   sequentialthinking*: allow
   time*: allow
   todoread: allow
   todowrite: allow
-  
-  # Browser automation (primary tool)
   playwright*: allow
   playwright-*_take_screenshot: deny
   playwright-*_snapshot: deny
-  
-  # Anti-bot fallback
   flaresolverr*: allow
-  
-  # Delegation (with recursion prevention)
   task:
     "*": allow
     personal-assistant: deny

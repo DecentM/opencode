@@ -3,7 +3,6 @@ description: Fast, read-only agent for exploring codebases and answering questio
 mode: subagent
 temperature: 0.2
 permission:
-  # Base tools
   glob: allow
   grep: allow
   list: allow
@@ -14,11 +13,9 @@ permission:
     ".env": deny
     ".env.*": deny
     ".env.example": allow
-  # MCPs
   memory*: allow
   sequentialthinking*: allow
   time*: allow
-  # Agent-specific
   lsp: allow
   codesearch: allow
   docker:

@@ -3,7 +3,6 @@ description: System designer for architecture decisions, API design, scalability
 mode: subagent
 temperature: 0.3
 permission:
-  # Base tools
   glob: allow
   grep: allow
   list: allow
@@ -14,14 +13,11 @@ permission:
     ".env": deny
     ".env.*": deny
     ".env.example": allow
-  # MCPs
   memory*: allow
   sequentialthinking*: allow
   time*: allow
-  # Agent-specific
   lsp: allow
   codesearch: allow
-  # Web scraping
   flaresolverr: allow
   flaresolverr*: allow
   playwright: allow
@@ -31,17 +27,9 @@ permission:
   task:
     "*": allow
     architect: deny
-  # Profile MCPs - defined in profile jsonc
   github_get*: allow
   github_list*: allow
   github_search*: allow
-  # Access to tickets
-  jira_atlassianUserInfo: allow
-  jira_fetch: allow
-  jira_get*: allow
-  jira_lookup*: allow
-  jira_search*: allow
-  jira_search: allow
 ---
 
 You are a software architect advising on system design, API patterns, and technical strategy.

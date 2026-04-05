@@ -5,15 +5,6 @@
   "snapshot": true,
   "logLevel": "WARN",
   "default_agent": "coordinator",
-  "keybinds": {},
-  "tui": {
-    "scroll_speed": 3,
-    "scroll_acceleration": {
-      "enabled": false
-    },
-    "diff_style": "auto"
-  },
-  "theme": "ariake-dark",
 
   "username": "{env:MY_NAME}",
   "small_model": "openrouter/minimax/minimax-m1",

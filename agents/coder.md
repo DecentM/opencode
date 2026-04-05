@@ -3,7 +3,6 @@ description: Full-stack developer for implementing features, debugging, testing,
 mode: subagent
 temperature: 0.2
 permission:
-  # Base tools
   glob: allow
   grep: allow
   list: allow
@@ -14,11 +13,9 @@ permission:
     ".env": deny
     ".env.*": deny
     ".env.example": allow
-  # MCPs
   memory*: allow
   sequentialthinking*: allow
   time*: allow
-  # Agent-specific
   edit:
     "*": allow
     ".env": deny
