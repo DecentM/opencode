@@ -18,12 +18,8 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     # Runtime essentials
     bash \
-    curl \
     ca-certificates \
-    git \
-    jq \
     dumb-init \
-    unzip \
     # Node.js + npm (for MCP servers and Figma/Playwright npm packages)
     nodejs \
     npm \
@@ -35,6 +31,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr-eng \
     # Chromium for Playwright headless (system install avoids playwright download)
     chromium \
+    # Needed for manual bootstrapping
+    gh ssh \
+    # For models
+    ansible apache2-utils aspell at bat bc biber binutils bsdmainutils btop cargo certbot cloc cowsay cron curl dc default-mysql-client dnsutils fd-find ffmpeg figlet file fortune-mod gdb gettext gfortran git gnuplot gnupg graphviz hdf5-tools htop httpie hunspell hyperfine icu-devtools imagemagick iptables jq libimage-exiftool-perl libxml2-utils lldb lolcat lsof ltrace make maxima msmtp mtr mutt ncat net-tools nmap octave openssl openssh-client pandoc parallel pari-gp pass plantuml poppler-utils postgresql-client procps python3 python3-csvkit python3-pip python3-pytest r-base rclone redis-tools remind ripgrep rsync shellcheck sqlite3 strace sysstat tcpdump tesseract-ocr texlive-bibtex-extra texlive-latex-base texlive-luatex texlive-xetex tig traceroute tree ufw unzip valgrind wrk xsltproc xxd yq zip \
     && rm -rf /var/lib/apt/lists/*
 
 # ─────────────────────────────────────────────────────────────────────────────
