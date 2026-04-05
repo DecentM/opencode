@@ -1,6 +1,6 @@
 /**
  * PocketTTS text-to-speech tool with direct process spawning.
- * Converts text to speech using the pockettts CLI.
+ * Converts text to speech using the pocket-tts CLI.
  * Each execution spawns a fresh process.
  * Supports parallel executions.
  */
@@ -16,25 +16,21 @@ import { formatErrorResult, formatExecutionResult } from '../lib/format'
 // =============================================================================
 
 const DEFAULT_TIMEOUT_MS = 30_000
-const DEFAULT_SPEED = 1.0
-const MIN_SPEED = 0.5
-const MAX_SPEED = 2.0
 
-/** Supported audio file extensions for TTS output */
-const SUPPORTED_EXTENSIONS = new Set(['.wav', '.mp3', '.ogg'])
+/** Supported audio file extension for TTS output (WAV only) */
+const SUPPORTED_EXTENSION = '.wav'
 
 // =============================================================================
 // Main Tool
 // =============================================================================
 
 export default tool({
-  description: `Convert text to speech using pockettts (Kyutai Labs TTS models).
+  description: `Convert text to speech using pocket-tts (Kyutai Labs TTS models).
 
 Features:
 - Generate natural-sounding speech from text
-- Supports multiple languages and voices (e.g., 'en-US', 'en-GB', 'fr-FR', 'de-DE')
-- Adjustable speech speed (0.5x to 2.0x)
-- Multiple audio output formats: WAV, MP3, OGG
+- Supports multiple voices by name (e.g., 'af', 'af_bella', 'af_sarah', 'am_adam', 'am_michael', 'bf_emma', 'bm_george')
+- WAV audio output format only
 - Fresh process per execution (parallel-safe)
 
 Required Parameters:
@@ -42,75 +38,57 @@ Required Parameters:
 - output_path: Absolute file path where the audio file will be saved
 
 Optional Parameters:
-- voice: Voice/language identifier (default: model's default voice)
-- speed: Speech speed multiplier from 0.5 (slow) to 2.0 (fast), default 1.0
+- voice: Voice name identifier (default: model's default voice)
 - timeout: Maximum execution time in milliseconds, default 30 seconds
 
-Supported Output Formats:
-- .wav: WAV audio format (recommended for best quality)
-- .mp3: MP3 compressed audio
-- .ogg: Ogg Vorbis audio format
+Supported Output Format:
+- .wav: WAV audio format only
 
 Example usage:
-  pockettts --text "Hello world" --output /tmp/speech.wav --voice en-US --speed 1.0
+  pocket-tts generate --text "Hello world" --output-path /tmp/speech.wav --voice af
 
-The tool spawns a fresh pockettts process for each call, ensuring parallel-safe
+The tool spawns a fresh pocket-tts process for each call, ensuring parallel-safe
 execution without resource contention between concurrent TTS operations.`,
   args: {
     text: tool.schema.string().describe('Text content to convert to speech. Must not be empty.'),
     output_path: tool.schema
       .string()
       .describe(
-        'Absolute path where the audio file will be saved (e.g., /tmp/output.wav). Supported extensions: .wav, .mp3, .ogg'
+        'Absolute path where the audio file will be saved (e.g., /tmp/output.wav). Must use .wav extension.'
       ),
     voice: tool.schema
       .string()
       .optional()
-      .describe('Voice/language to use (e.g., "en-US", "en-GB", "fr-FR", "de-DE"). Optional.'),
-    speed: tool.schema
-      .number()
-      .optional()
-      .describe(
-        `Speech speed multiplier from ${MIN_SPEED} (slow) to ${MAX_SPEED} (fast). Default: ${DEFAULT_SPEED}`
-      ),
+      .describe('Voice name to use (e.g., "af", "af_bella", "am_adam", "bf_emma"). Optional.'),
     timeout: tool.schema
       .number()
       .optional()
       .describe(`Timeout in milliseconds. Default: ${DEFAULT_TIMEOUT_MS}`),
   },
   async execute(args) {
-    const { text, output_path, voice, speed = DEFAULT_SPEED, timeout = DEFAULT_TIMEOUT_MS } = args
+    const { text, output_path, voice, timeout = DEFAULT_TIMEOUT_MS } = args
 
     // Validate that text is provided and not empty
     if (!text || !text.trim()) {
-      return formatErrorResult('Error: No text provided for TTS conversion', 0, 'pockettts')
+      return formatErrorResult('Error: No text provided for TTS conversion', 0, 'pocket-tts')
     }
 
     const trimmedText = text.trim()
 
     // Validate that output path is provided
     if (!output_path || !output_path.trim()) {
-      return formatErrorResult('Error: No output path provided for audio file', 0, 'pockettts')
+      return formatErrorResult('Error: No output path provided for audio file', 0, 'pocket-tts')
     }
 
     const trimmedOutputPath = output_path.trim()
 
-    // Validate output file extension
+    // Validate output file extension (WAV only)
     const ext = extname(trimmedOutputPath).toLowerCase()
-    if (!SUPPORTED_EXTENSIONS.has(ext)) {
+    if (ext !== SUPPORTED_EXTENSION) {
       return formatErrorResult(
-        `Error: Unsupported file extension "${ext}". Supported formats: ${[...SUPPORTED_EXTENSIONS].join(', ')}`,
+        `Error: Unsupported file extension "${ext}". Only WAV format (.wav) is supported.`,
         0,
-        'pockettts'
-      )
-    }
-
-    // Validate speed is within valid range
-    if (!Number.isFinite(speed) || speed < MIN_SPEED || speed > MAX_SPEED) {
-      return formatErrorResult(
-        `Error: Speed must be a number between ${MIN_SPEED} and ${MAX_SPEED}, got ${speed}`,
-        0,
-        'pockettts'
+        'pocket-tts'
       )
     }
 
@@ -120,26 +98,28 @@ execution without resource contention between concurrent TTS operations.`,
       return formatErrorResult(
         `Error: Output directory does not exist: ${outputDir}`,
         0,
-        'pockettts'
+        'pocket-tts'
       )
     }
 
-    // Build pockettts command arguments
-    // pockettts --text "Hello world" --output /path/to/output.wav [--voice en-US] [--speed 1.0]
-    const cmdArgs: string[] = ['--text', trimmedText, '--output', trimmedOutputPath]
+    // Build pocket-tts command arguments
+    // pocket-tts generate --text "Hello world" --output-path /path/to/output.wav [--voice af]
+    const cmdArgs: string[] = [
+      'generate',
+      '--text',
+      trimmedText,
+      '--output-path',
+      trimmedOutputPath,
+    ]
 
     if (voice !== undefined && voice.trim()) {
       cmdArgs.push('--voice', voice.trim())
     }
 
-    if (speed !== DEFAULT_SPEED) {
-      cmdArgs.push('--speed', String(speed))
-    }
-
     const startTime = performance.now()
     let timedOut = false
 
-    const proc = Bun.spawn(['pockettts', ...cmdArgs], {
+    const proc = Bun.spawn(['pocket-tts', ...cmdArgs], {
       stdout: 'pipe',
       stderr: 'pipe',
     })
@@ -174,7 +154,7 @@ execution without resource contention between concurrent TTS operations.`,
         : stderr,
       durationMs,
       timedOut,
-      runtime: 'pockettts',
+      runtime: 'pocket-tts',
     })
   },
 })
