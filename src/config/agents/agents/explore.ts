@@ -5,7 +5,6 @@ export const EXPLORE: AgentDefinition = {
   name: 'explore',
   description:
     'Fast, read-only agent for exploring codebases and answering questions about code structure',
-  model: 'anthropic/claude-haiku-4-5',
   mode: 'subagent',
   temperature: 0.2,
   tools: ['node', 'python', 'tesseract', 'pw'],

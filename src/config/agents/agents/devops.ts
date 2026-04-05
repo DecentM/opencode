@@ -5,7 +5,6 @@ export const DEVOPS: AgentDefinition = {
   name: 'devops',
   description:
     'DevOps and infrastructure specialist for containers, CI/CD, cloud resources, and system configuration',
-  model: 'anthropic/claude-sonnet-4-6',
   mode: 'subagent',
   temperature: 0.2,
   tools: ['pw', 'github', 'sentry'],

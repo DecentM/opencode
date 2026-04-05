@@ -5,7 +5,6 @@ export const ACADEMIA: AgentDefinition = {
   name: 'academia',
   description:
     'Academic research specialist for literature review, paper analysis, citation management, academic writing, and scholarly research methodology',
-  model: 'anthropic/claude-sonnet-4-6',
   mode: 'subagent',
   temperature: 0.2,
   tools: ['pw'],

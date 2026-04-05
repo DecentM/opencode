@@ -5,7 +5,6 @@ export const RESEARCHER: AgentDefinition = {
   name: 'researcher',
   description:
     'Information specialist for web research, data scraping, analysis, and transformation',
-  model: 'anthropic/claude-sonnet-4-6',
   mode: 'subagent',
   temperature: 0.3,
   tools: ['node', 'python', 'tesseract', 'pw', 'github', 'jira', 'notion', 'slack', 'sentry'],

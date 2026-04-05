@@ -5,7 +5,6 @@ export const TRIVIA: AgentDefinition = {
   name: 'trivia',
   description:
     'Trivia and general knowledge specialist for quizzes, fact-checking, knowledge games, and broad factual Q&A',
-  model: 'anthropic/claude-opus-4-6',
   mode: 'subagent',
   temperature: 0.3,
   tools: [],

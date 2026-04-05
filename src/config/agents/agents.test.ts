@@ -163,7 +163,6 @@ describe('buildAgent', () => {
     const agent = buildAgent(coderDef, settings, makeCtx())
 
     expect(agent.description).toBe(coderDef.description)
-    expect(agent.model).toBe(coderDef.model)
     expect(agent.mode).toBe(coderDef.mode)
     expect(agent.temperature).toBe(coderDef.temperature)
   })
@@ -263,7 +262,6 @@ describe('loadAgents', () => {
     expect(coder.description).toBe(
       'Full-stack developer for implementing features, debugging, testing, refactoring, and performance optimization'
     )
-    expect(coder.model).toBe('anthropic/claude-opus-4-6')
     expect(coder.mode).toBe('subagent')
     expect(coder.temperature).toBe(0.2)
     expect(coder.permission).toBeDefined()

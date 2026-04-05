@@ -5,7 +5,6 @@ export const TRANSLATION: AgentDefinition = {
   name: 'translation',
   description:
     'Translation and localisation specialist for accurate, culturally-aware translation across languages and content types',
-  model: 'openai/gpt-4.1',
   mode: 'subagent',
   temperature: 0.2,
   tools: [],

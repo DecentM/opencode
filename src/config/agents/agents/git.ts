@@ -5,7 +5,6 @@ export const GIT: AgentDefinition = {
   name: 'git',
   description:
     'Version control specialist for complex git operations, history management, and collaboration workflows',
-  model: 'anthropic/claude-sonnet-4-6',
   mode: 'subagent',
   temperature: 0.1,
   tools: ['github'],

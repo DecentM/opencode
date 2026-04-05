@@ -5,7 +5,6 @@ export const LEGAL: AgentDefinition = {
   name: 'legal',
   description:
     'Legal analysis specialist for contract review, compliance, regulatory interpretation, and legal research — not a substitute for qualified legal counsel',
-  model: 'anthropic/claude-sonnet-4-6',
   mode: 'subagent',
   temperature: 0.1,
   tools: ['pw'],

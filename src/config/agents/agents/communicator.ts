@@ -5,7 +5,6 @@ export const COMMUNICATOR: AgentDefinition = {
   name: 'communicator',
   description:
     'Technical communicator for documentation, creative storytelling, ideation, and engaging technical content',
-  model: 'github-copilot/gpt-5.1',
   mode: 'subagent',
   temperature: 0.6,
   tools: ['pw', 'github', 'jira', 'notion', 'slack'],
@@ -15,6 +14,8 @@ export const COMMUNICATOR: AgentDefinition = {
     list: 'allow',
     read: READ_DENY_ENV,
     edit: EDIT_DENY_ENV,
+    todoread: 'allow',
+    todowrite: 'allow',
     lsp: 'allow',
     codesearch: 'allow',
   },

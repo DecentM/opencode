@@ -1,22 +1,21 @@
 # opencode launcher — single-container image
 #
-# Base: ghcr.io/anomalyco/opencode:latest (Alpine 3.23)
-#   - statically-linked opencode binary at /usr/local/bin/opencode
-#   - libgcc, libstdc++, ripgrep pre-installed
-#   - no Node, no Python, no git
+# Base: debian:bookworm-slim (Debian 12 with glibc)
+#   - real glibc — no compat shims needed
+#   - opencode binary downloaded from GitHub releases
+#   - no Node, no Python, no git in the base
 #
-# Layer order is intentional: system deps → npm globals → app code.
+# Layer order is intentional: system deps → opencode binary → bun → npm globals → app code.
 # Changing system deps busts the cache from that point forward, but
 # changing app source only busts the last few layers.
 
-ARG OPENCODE_VERSION=latest
-FROM ghcr.io/anomalyco/opencode:${OPENCODE_VERSION}
+FROM debian:bookworm-slim
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. System dependencies
 # ─────────────────────────────────────────────────────────────────────────────
 
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     # Runtime essentials
     bash \
     curl \
@@ -30,32 +29,44 @@ RUN apk add --no-cache \
     npm \
     # Python (for direct python tool execution)
     python3 \
-    py3-pip \
+    python3-pip \
     # OCR tool
     tesseract-ocr \
-    tesseract-ocr-data-eng \
+    tesseract-ocr-eng \
     # Chromium for Playwright headless (system install avoids playwright download)
     chromium \
-    chromium-chromedriver
+    && rm -rf /var/lib/apt/lists/*
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 2. Bun — not in Alpine repos, install the musl binary from GitHub releases
+# 2. opencode binary — download from GitHub releases
 #
-#    We use the musl variant (not glibc) because Alpine uses musl libc.
+#    The release asset is a glibc tarball containing a single `opencode` binary.
+#    We always pull latest; the /latest/download/ URL handles the redirect.
+# ─────────────────────────────────────────────────────────────────────────────
+
+RUN curl -fsSL "https://github.com/sst/opencode/releases/latest/download/opencode-linux-x64.tar.gz" \
+        | tar -xz -C /usr/local/bin \
+    && chmod +x /usr/local/bin/opencode \
+    && opencode --version
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 3. Bun — not in Debian repos, install the glibc binary from GitHub releases
+#
+#    We use the glibc variant (not musl) because Debian uses glibc.
 #    The zip contains a single `bun` binary; we extract it directly.
 # ─────────────────────────────────────────────────────────────────────────────
 
 ARG BUN_VERSION=bun-v1.3.11
 
-RUN curl -fsSL "https://github.com/oven-sh/bun/releases/download/${BUN_VERSION}/bun-linux-x64-musl.zip" \
+RUN curl -fsSL "https://github.com/oven-sh/bun/releases/download/${BUN_VERSION}/bun-linux-x64.zip" \
         -o /tmp/bun.zip \
     && unzip -q /tmp/bun.zip -d /tmp/bun-extract \
-    && install -m 755 /tmp/bun-extract/bun-linux-x64-musl/bun /usr/local/bin/bun \
+    && install -m 755 /tmp/bun-extract/bun-linux-x64/bun /usr/local/bin/bun \
     && rm -rf /tmp/bun.zip /tmp/bun-extract \
     && bun --version
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 3. Global npm packages — MCP servers
+# 4. Global npm packages — MCP servers
 #
 #    figma-developer-mcp: Framelink Figma MCP, spawned by opencode on demand
 #    slack-mcp-server:    downloads a Go binary at install time (needs network)
@@ -70,9 +81,9 @@ RUN npm install -g --no-fund --no-audit \
     @playwright/mcp
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 4. Playwright — point at system Chromium so we don't download a second copy
+# 5. Playwright — point at system Chromium so we don't download a second copy
 #
-#    Alpine's chromium package installs the binary at /usr/bin/chromium.
+#    Debian's chromium package installs the binary at /usr/bin/chromium.
 #    PLAYWRIGHT_BROWSERS_PATH is set to a dummy path so playwright doesn't
 #    try to manage its own browser store.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -82,7 +93,7 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/usr/lib/playwright-browsers
 ENV PLAYWRIGHT_HEADLESS=true
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 5. App source — copy and install dependencies
+# 6. App source — copy and install dependencies
 #
 #    bun.lock is included (frozen install) so the build is reproducible.
 #    node_modules and other generated artifacts are excluded via .dockerignore.

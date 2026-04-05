@@ -5,7 +5,6 @@ export const MATH: AgentDefinition = {
   name: 'math',
   description:
     'Mathematical computation specialist for calculations, numerical analysis, and symbolic math',
-  model: 'github-copilot/gemini-2.5-pro',
   mode: 'subagent',
   temperature: 0.1,
   tools: ['node', 'python', 'tesseract'],

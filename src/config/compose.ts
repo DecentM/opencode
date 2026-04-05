@@ -6,7 +6,7 @@ import type { Settings } from '../settings/types'
 import { loadAgents } from './agents'
 import { buildMcps } from './mcps'
 import type { RuleDefinition } from './rules/index'
-import type { AgentConfig, AgentOverrideConfig, DisabledAgentConfig, OpencodeConfig } from './types'
+import type { AgentConfig, AgentOverrideConfig, DisabledAgentConfig, EnabledAgentConfig, OpencodeConfig } from './types'
 
 export type ComposeResult = {
   config: OpencodeConfig
@@ -20,16 +20,16 @@ export type TempConfigResult = {
 
 // Static agents that are always disabled or have fixed config
 const STATIC_AGENTS = {
-  general: { disable: true as const },
-  summary: { disable: true as const },
-  title: { model: 'anthropic/claude-haiku-4-5' },
-  writer: { disable: true as const },
-  plan: { disable: true as const },
-  build: { disable: true as const },
-}
+  general: { disable: true },
+  summary: { disable: true },
+  title: { disable: false },
+  writer: { disable: true },
+  plan: { disable: true },
+  build: { disable: true },
+} as const
 
 const isAgentConfig = (
-  entry: AgentConfig | DisabledAgentConfig | AgentOverrideConfig
+  entry: AgentConfig | DisabledAgentConfig | EnabledAgentConfig | AgentOverrideConfig
 ): entry is AgentConfig => {
   return 'prompt' in entry && typeof (entry as AgentConfig).prompt === 'string'
 }
@@ -51,7 +51,7 @@ export const composeConfig = (settings: Settings, rules: RuleDefinition[]): Comp
 
   // Extract prompts from enabled agents and replace with file references
   const agentPrompts: Record<string, string> = {}
-  const agentEntries: Record<string, AgentConfig | DisabledAgentConfig | AgentOverrideConfig> = {}
+  const agentEntries: Record<string, AgentConfig | DisabledAgentConfig | EnabledAgentConfig | AgentOverrideConfig> = {}
 
   for (const [name, entry] of Object.entries(allAgents)) {
     if (isAgentConfig(entry)) {
@@ -78,8 +78,6 @@ export const composeConfig = (settings: Settings, rules: RuleDefinition[]): Comp
       share: 'disabled',
       permission: {
         '*': 'deny',
-        todoread: 'allow',
-        todowrite: 'allow',
       },
       instructions: ['{env:PWD}/AGENTS.md', '{env:PWD}/.cursor/rules/*.{md,mdx}'],
       agent: agentEntries,

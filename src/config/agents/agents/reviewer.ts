@@ -5,7 +5,6 @@ export const REVIEWER: AgentDefinition = {
   name: 'reviewer',
   description:
     'Code analyst for reviewing quality, security vulnerabilities, and accessibility compliance (read-only)',
-  model: 'anthropic/claude-sonnet-4-6',
   mode: 'subagent',
   temperature: 0.1,
   tools: ['node', 'python', 'tesseract', 'github', 'jira', 'figma', 'sentry'],

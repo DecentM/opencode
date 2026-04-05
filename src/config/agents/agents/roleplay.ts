@@ -5,7 +5,6 @@ export const ROLEPLAY: AgentDefinition = {
   name: 'roleplay',
   description:
     'Creative roleplay and interactive fiction specialist for character-driven narratives, worldbuilding, and collaborative storytelling',
-  model: 'anthropic/claude-opus-4-6',
   mode: 'subagent',
   temperature: 0.8,
   tools: [],

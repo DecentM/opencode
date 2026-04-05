@@ -5,7 +5,6 @@ export const CODER: AgentDefinition = {
   name: 'coder',
   description:
     'Full-stack developer for implementing features, debugging, testing, refactoring, and performance optimization',
-  model: 'anthropic/claude-opus-4-6',
   mode: 'subagent',
   temperature: 0.2,
   tools: ['node', 'python', 'tesseract', 'github', 'figma', 'sentry'],

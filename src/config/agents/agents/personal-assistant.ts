@@ -3,7 +3,6 @@ import type { AgentDefinition } from '../types'
 export const PERSONAL_ASSISTANT: AgentDefinition = {
   name: 'personal-assistant',
   description: 'Full-service personal assistant via browser automation',
-  model: 'anthropic/claude-opus-4-6',
   mode: 'subagent',
   temperature: 0.5,
   tools: ['pw'],

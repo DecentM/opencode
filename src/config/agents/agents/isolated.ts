@@ -3,7 +3,6 @@ import type { AgentDefinition } from '../types'
 export const ISOLATED: AgentDefinition = {
   name: 'isolated',
   description: 'Pure conversation and text generation agent with no tool or agent access',
-  model: 'anthropic/claude-sonnet-4-6',
   mode: 'primary',
   temperature: 0.7,
   tools: [],

@@ -7,7 +7,6 @@ export type AgentMode = 'primary' | 'subagent'
 
 export type AgentFrontmatter = {
   description: string
-  model: string
   mode: AgentMode
   temperature: number
   hidden?: boolean
@@ -20,6 +19,10 @@ export type AgentConfig = AgentFrontmatter & {
 
 export type DisabledAgentConfig = {
   disable: true
+}
+
+export type EnabledAgentConfig = {
+  disable: false
 }
 
 // Partial override for built-in agents (e.g. title) that only need a model change
@@ -57,6 +60,6 @@ export type OpencodeConfig = {
   share: string
   permission: Record<string, string>
   instructions: string[]
-  agent: Record<string, AgentConfig | DisabledAgentConfig | AgentOverrideConfig>
+  agent: Record<string, AgentConfig | DisabledAgentConfig | EnabledAgentConfig | AgentOverrideConfig>
   mcp: Record<string, McpConfig>
 }

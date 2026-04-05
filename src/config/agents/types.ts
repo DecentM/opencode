@@ -13,7 +13,6 @@ export type DynamicPromptContext = {
 export type AgentDefinition = {
   name: string
   description: string
-  model: string
   mode: AgentMode
   temperature: number
   hidden?: boolean

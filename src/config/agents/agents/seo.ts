@@ -5,7 +5,6 @@ export const SEO: AgentDefinition = {
   name: 'seo',
   description:
     'SEO specialist for keyword research, content optimisation, technical SEO analysis, and search strategy',
-  model: 'anthropic/claude-sonnet-4-6',
   mode: 'subagent',
   temperature: 0.3,
   tools: ['pw'],

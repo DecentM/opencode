@@ -44,7 +44,6 @@ export const buildAgent = (
 
   return {
     description: def.description,
-    model: def.model,
     mode: def.mode,
     temperature: def.temperature,
     ...(def.hidden != null ? { hidden: def.hidden } : {}),

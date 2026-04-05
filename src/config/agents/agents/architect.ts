@@ -5,7 +5,6 @@ export const ARCHITECT: AgentDefinition = {
   name: 'architect',
   description:
     'System designer for architecture decisions, API design, scalability planning, and technical strategy',
-  model: 'github-copilot/gemini-3-pro-preview',
   mode: 'subagent',
   temperature: 0.3,
   tools: ['pw', 'github', 'jira', 'notion', 'slack', 'figma', 'sentry'],

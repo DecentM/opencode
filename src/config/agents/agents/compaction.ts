@@ -3,7 +3,6 @@ import type { AgentDefinition } from '../types'
 export const COMPACTION: AgentDefinition = {
   name: 'compaction',
   description: 'Specialized agent for compacting session context when token limits are reached',
-  model: 'anthropic/claude-haiku-4-5',
   mode: 'subagent',
   temperature: 0.1,
   hidden: true,

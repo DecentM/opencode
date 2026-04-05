@@ -87,7 +87,7 @@ const buildDelegationSection = (ctx: DynamicPromptContext): string => {
   sections.push(`## Why Delegation Matters\n\n${whyDelegate}`)
 
   // 6. Subagent Roster
-  const rosterRows = delegatable.map((a) => `| ${a.name} | ${a.model} | ${a.description} |`)
+  const rosterRows = delegatable.map((a) => `| ${a.name} | ${a.description} |`)
 
   sections.push(
     `## Enabled Subagents\n\n| Name | Model | Description |\n|------|-------|-------------|\n${rosterRows.join('\n')}`
@@ -111,7 +111,6 @@ export const COORDINATOR: AgentDefinition = {
   name: 'coordinator',
   description:
     'Primary coordinator agent that delegates work to specialized subagents while maintaining read-only access to the codebase',
-  model: 'anthropic/claude-sonnet-4-6',
   mode: 'primary',
   temperature: 0.2,
   tools: ['time'],

@@ -5,7 +5,6 @@ export const MARKETING: AgentDefinition = {
   name: 'marketing',
   description:
     'Marketing specialist for campaigns, copywriting, brand voice, content strategy, and audience engagement',
-  model: 'anthropic/claude-sonnet-4-6',
   mode: 'subagent',
   temperature: 0.6,
   tools: ['pw'],

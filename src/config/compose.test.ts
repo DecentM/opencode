@@ -45,7 +45,6 @@ describe('composeConfig', () => {
     expect(config.snapshot).toBe(true)
     expect(config.logLevel).toBe('WARN')
     expect(config.default_agent).toBe('coordinator')
-    expect(config.enabled_providers).toEqual(['github-copilot', 'openai', 'anthropic'])
     expect(config.share).toBe('disabled')
   })
 
@@ -57,14 +56,6 @@ describe('composeConfig', () => {
     expect(config.agent.writer).toEqual({ disable: true })
     expect(config.agent.plan).toEqual({ disable: true })
     expect(config.agent.build).toEqual({ disable: true })
-  })
-
-  it('includes title agent with model override', () => {
-    const { config } = composeConfig(allEnabledSettings(), [])
-
-    expect(config.agent.title).toEqual({
-      model: 'anthropic/claude-haiku-4-5',
-    })
   })
 
   it('includes dynamic agents from loadAgents', () => {

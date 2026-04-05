@@ -5,7 +5,6 @@ export const SCIENCE: AgentDefinition = {
   name: 'science',
   description:
     'Science specialist for research analysis, hypothesis generation, experimental design, and scientific writing across disciplines',
-  model: 'anthropic/claude-opus-4-6',
   mode: 'subagent',
   temperature: 0.2,
   tools: ['pw'],

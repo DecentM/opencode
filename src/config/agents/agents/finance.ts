@@ -5,7 +5,6 @@ export const FINANCE: AgentDefinition = {
   name: 'finance',
   description:
     'Finance specialist for financial analysis, modelling, investment research, accounting concepts, and economic reasoning',
-  model: 'anthropic/claude-sonnet-4-6',
   mode: 'subagent',
   temperature: 0.1,
   tools: ['pw'],
