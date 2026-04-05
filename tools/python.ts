@@ -1,96 +1,139 @@
 /**
- * Python code execution tool with isolated Docker sandbox.
- * Each execution spawns a fresh container that auto-removes after use.
- * Supports parallel executions with resource isolation.
+ * Python code execution tool with direct process spawning.
+ * Each execution spawns a fresh python3 process.
+ * Supports parallel executions.
  */
 
-import { join } from 'node:path'
-
 import { tool } from '@opencode-ai/plugin'
-import {
-  buildImage,
-  formatErrorResult,
-  formatExecutionResult,
-  formatNoCodeError,
-  runContainer,
-} from '../lib/docker'
+import { formatExecutionResult, formatNoCodeError } from '../lib/format'
 
 // =============================================================================
 // Constants
 // =============================================================================
 
-const OPENCODE_CONFIG_DIR = process.env.OPENCODE_CONFIG_DIR
-
-if (!OPENCODE_CONFIG_DIR) {
-  throw new Error(`[Python plugin]: Environment variable "OPENCODE_CONFIG_DIR" is not defined. Cannot start.`)
-}
-
-const DOCKER_CONTEXT = join(OPENCODE_CONFIG_DIR, 'docker')
-const DOCKERFILE_PATH = 'tool-python.dockerfile'
+const DEFAULT_TIMEOUT_MS = 30_000
 const DEFAULT_PYTHON_VERSION = '3.12'
-const MAX_MEM_MB = 512
-const MAX_CPU = 1
+
+// =============================================================================
+// Process Runner
+// =============================================================================
+
+/**
+ * Spawn a python3 process, pipe code to stdin, and collect output.
+ */
+const runPythonProcess = async (options: {
+  code: string
+  timeout: number
+  packages: string[]
+}): Promise<{
+  exitCode: number
+  stdout: string
+  stderr: string
+  durationMs: number
+  timedOut: boolean
+}> => {
+  const { code, timeout, packages } = options
+  const startTime = performance.now()
+  let timedOut = false
+
+  // Install packages first if requested
+  if (packages.length > 0) {
+    const installProc = Bun.spawn(['pip', 'install', '--quiet', ...packages], {
+      stdout: 'pipe',
+      stderr: 'pipe',
+    })
+
+    await installProc.exited
+
+    if (installProc.exitCode !== 0) {
+      const stderr = await new Response(installProc.stderr).text()
+      return {
+        exitCode: installProc.exitCode ?? -1,
+        stdout: '',
+        stderr: `Failed to install packages: ${stderr}`,
+        durationMs: Math.round(performance.now() - startTime),
+        timedOut: false,
+      }
+    }
+  }
+
+  const proc = Bun.spawn(['python3', '-'], {
+    stdin: 'pipe',
+    stdout: 'pipe',
+    stderr: 'pipe',
+  })
+
+  // Write code to stdin and close
+  proc.stdin.write(code)
+  proc.stdin.end()
+
+  // Race between process completion and timeout
+  const timeoutId = setTimeout(() => {
+    timedOut = true
+    proc.kill('SIGTERM')
+    // Force kill after 2 seconds if still alive
+    setTimeout(() => {
+      try {
+        proc.kill('SIGKILL')
+      } catch {
+        // Process may already be dead
+      }
+    }, 2_000)
+  }, timeout)
+
+  await proc.exited
+  clearTimeout(timeoutId)
+
+  const stdout = await new Response(proc.stdout).text()
+  const stderr = await new Response(proc.stderr).text()
+  const durationMs = Math.round(performance.now() - startTime)
+
+  return {
+    exitCode: timedOut ? -2 : (proc.exitCode ?? -1),
+    stdout,
+    stderr: timedOut
+      ? `Execution timed out after ${timeout}ms and was terminated.\n${stderr}`.trim()
+      : stderr,
+    durationMs,
+    timedOut,
+  }
+}
 
 // =============================================================================
 // Main Tool
 // =============================================================================
 
 export default tool({
-  description: `Execute Python code in an isolated sandbox container.
+  description: `Execute Python code in a python3 process.
 
 Features:
-- Builds container on first use
-- Fresh container per execution (parallel-safe)
-- Auto-removes after completion
-- Network isolated, memory/CPU limited
-- Preinstallable packages
+- Fresh process per execution (parallel-safe)
+- Preinstallable pip packages
 
 Returns stdout, stderr, and exit code.`,
   args: {
     code: tool.schema.string().describe('Python code to execute'),
-    timeout: tool.schema.number().describe(`Timeout in milliseconds`),
+    timeout: tool.schema.number().describe('Timeout in milliseconds'),
     packages: tool.schema
       .array(tool.schema.string())
       .optional()
-      .describe('List of packages to preinstall during build (add some timeout for each)'),
+      .describe('List of packages to preinstall (add some timeout for each)'),
     python_version: tool.schema
       .string()
       .optional()
-      .describe(`Exact Node version to use (default: ${DEFAULT_PYTHON_VERSION})`),
+      .describe(
+        `Python version (ignored — uses system python3, default: ${DEFAULT_PYTHON_VERSION})`
+      ),
   },
   async execute(args) {
-    const { code, timeout, packages = [], python_version = DEFAULT_PYTHON_VERSION } = args
+    const { code, timeout = DEFAULT_TIMEOUT_MS, packages = [] } = args
 
     if (!code.trim()) {
       return formatNoCodeError()
     }
 
-    // Build the image
-    const buildResult = await buildImage(DOCKER_CONTEXT, {
-      dockerfile: DOCKERFILE_PATH,
-      quiet: true,
-      buildArgs: {
-        PYTHON_PACKAGES: packages.join(' '),
-        PYTHON_VERSION: python_version,
-      },
-    })
+    const result = await runPythonProcess({ code, timeout, packages })
 
-    if (!buildResult.success || !buildResult.data) {
-      return formatErrorResult(buildResult.error ?? 'Failed to build image', 0, 'python')
-    }
-
-    // Run container with the docker library
-    const result = await runContainer({
-      image: buildResult.data,
-      code,
-      cmd: ['-'],
-      timeout,
-      memory: `${MAX_MEM_MB}m`,
-      cpus: MAX_CPU,
-      networkMode: 'none',
-    })
-
-    // Format and return result
     return formatExecutionResult({
       exitCode: result.exitCode,
       stdout: result.stdout,

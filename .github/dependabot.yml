@@ -1,0 +1,57 @@
+# Dependabot configuration for Docker base image updates
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # Monitor Docker base images in the docker/ directory
+  - package-ecosystem: "docker"
+    directory: "/docker"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    # Limit open PRs to reduce noise
+    open-pull-requests-limit: 5
+    # Add labels for easy filtering
+    labels:
+      - "dependencies"
+      - "docker"
+    # Commit message configuration
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"
+    # Group related Docker base image updates to reduce PR noise
+    groups:
+      # Group all Node.js base images together
+      node-images:
+        patterns:
+          - "node"
+          - "node:*"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group all Python base images together
+      python-images:
+        patterns:
+          - "python"
+          - "python:*"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group Microsoft container images
+      microsoft-images:
+        patterns:
+          - "mcr.microsoft.com/*"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group GitHub container registry images
+      ghcr-images:
+        patterns:
+          - "ghcr.io/*"
+        update-types:
+          - "minor"
+          - "patch"
+    # Ignore major version updates by default (keep them separate for review)
+    # Major updates will still create individual PRs for careful review

@@ -1,0 +1,38 @@
+# Dependencies — reinstalled during build via bun install
+node_modules/
+.opencode/node_modules/
+
+# Git history — not needed in the image
+.git/
+.github/
+
+# Per-tool Dockerfiles — these are build artifacts for separate images,
+# not part of the launcher runtime
+docker/*.dockerfile
+docker/mcp-figma/
+docker/mcp-playwright/
+
+# Documentation — not needed at runtime
+*.md
+!README.md
+
+# Local environment overrides — secrets must be passed via env vars at runtime
+.env
+.env.*
+
+# Editor and tooling artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test output and coverage
+coverage/
+*.lcov
+
+# TypeScript build output (we run source directly via bun)
+dist/
+build/
+*.tsbuildinfo
+
+# bun.lock is intentionally NOT excluded — needed for frozen install

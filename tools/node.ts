@@ -1,61 +1,129 @@
 /**
- * Node.js/TypeScript/Deno code execution tool with isolated Docker sandbox.
- * Each execution spawns a fresh container that auto-removes after use.
- * Supports parallel executions with resource isolation.
+ * Node.js/TypeScript code execution tool with direct process spawning.
+ * Each execution spawns a fresh node process.
+ * Supports parallel executions.
  */
 
-import { join } from 'node:path'
-
 import { tool } from '@opencode-ai/plugin'
-import {
-  buildImage,
-  formatErrorResult,
-  formatExecutionResult,
-  formatNoCodeError,
-  runContainer,
-} from '../lib/docker'
+import { formatExecutionResult, formatNoCodeError } from '../lib/format'
 
 // =============================================================================
 // Constants
 // =============================================================================
 
-const OPENCODE_CONFIG_DIR = process.env.OPENCODE_CONFIG_DIR
+const DEFAULT_TIMEOUT_MS = 30_000
 
-if (!OPENCODE_CONFIG_DIR) {
-  throw new Error(`[Node plugin]: Environment variable "OPENCODE_CONFIG_DIR" is not defined. Cannot start.`)
+// =============================================================================
+// Process Runner
+// =============================================================================
+
+/**
+ * Spawn a node process, pipe code to stdin, and collect output.
+ */
+const runNodeProcess = async (options: {
+  code: string
+  timeout: number
+  packages: string[]
+  esm: boolean
+}): Promise<{
+  exitCode: number
+  stdout: string
+  stderr: string
+  durationMs: number
+  timedOut: boolean
+}> => {
+  const { code, timeout, packages, esm } = options
+  const startTime = performance.now()
+  let timedOut = false
+
+  // Install packages first if requested
+  if (packages.length > 0) {
+    const installProc = Bun.spawn(['npm', 'install', '--no-save', ...packages], {
+      stdout: 'pipe',
+      stderr: 'pipe',
+    })
+
+    await installProc.exited
+
+    if (installProc.exitCode !== 0) {
+      const stderr = await new Response(installProc.stderr).text()
+      return {
+        exitCode: installProc.exitCode ?? -1,
+        stdout: '',
+        stderr: `Failed to install packages: ${stderr}`,
+        durationMs: Math.round(performance.now() - startTime),
+        timedOut: false,
+      }
+    }
+  }
+
+  const inputType = esm ? 'module' : 'commonjs'
+  const proc = Bun.spawn(['node', `--input-type=${inputType}`, '-'], {
+    stdin: 'pipe',
+    stdout: 'pipe',
+    stderr: 'pipe',
+  })
+
+  // Write code to stdin and close
+  proc.stdin.write(code)
+  proc.stdin.end()
+
+  // Race between process completion and timeout
+  const timeoutId = setTimeout(() => {
+    timedOut = true
+    proc.kill('SIGTERM')
+    // Force kill after 2 seconds if still alive
+    setTimeout(() => {
+      try {
+        proc.kill('SIGKILL')
+      } catch {
+        // Process may already be dead
+      }
+    }, 2_000)
+  }, timeout)
+
+  await proc.exited
+  clearTimeout(timeoutId)
+
+  const stdout = await new Response(proc.stdout).text()
+  const stderr = await new Response(proc.stderr).text()
+  const durationMs = Math.round(performance.now() - startTime)
+
+  return {
+    exitCode: timedOut ? -2 : (proc.exitCode ?? -1),
+    stdout,
+    stderr: timedOut
+      ? `Execution timed out after ${timeout}ms and was terminated.\n${stderr}`.trim()
+      : stderr,
+    durationMs,
+    timedOut,
+  }
 }
-
-const DOCKER_CONTEXT = join(OPENCODE_CONFIG_DIR, 'docker')
-const DOCKERFILE_PATH = 'tool-node.dockerfile'
-const MAX_MEM_MB = 512
-const MAX_CPU = 1
 
 // =============================================================================
 // Main Tool
 // =============================================================================
 
 export default tool({
-  description: `Execute JavaScript/TypeScript code in an isolated sandbox container.
+  description: `Execute JavaScript/TypeScript code in a Node.js process.
 
 Features:
-- Builds container on first use
-- Fresh container per execution (parallel-safe)
-- Auto-removes after completion
-- Network isolated, memory/CPU limited
-- Preinstallable packages
+- Fresh process per execution (parallel-safe)
+- Preinstallable npm packages
+- ESM or CommonJS mode
 
 Returns stdout, stderr, and exit code.`,
   args: {
     code: tool.schema.string().describe('JavaScript or TypeScript code to execute'),
-    timeout: tool.schema.number().describe(`Timeout in milliseconds`),
+    timeout: tool.schema.number().describe('Timeout in milliseconds'),
     packages: tool.schema
       .array(tool.schema.string())
       .optional()
-      .describe('List of packages to preinstall during build (add some timeout for each)'),
+      .describe('List of packages to preinstall (add some timeout for each)'),
     node_version: tool.schema
       .string()
       .optional()
-      .describe(`Exact Node version to use (default: ${process.versions.node})`),
+      .describe(`Node version (ignored — uses system Node ${process.versions.node})`),
     esm: tool.schema
       .boolean()
       .optional()
@@ -64,39 +132,14 @@ Returns stdout, stderr, and exit code.`,
       ),
   },
   async execute(args) {
-    const { code, timeout, packages = [], node_version = process.versions.node, esm = true } = args
+    const { code, timeout = DEFAULT_TIMEOUT_MS, packages = [], esm = true } = args
 
     if (!code.trim()) {
       return formatNoCodeError()
     }
 
-    // Build the image
-    const buildResult = await buildImage(DOCKER_CONTEXT, {
-      dockerfile: DOCKERFILE_PATH,
-      quiet: true,
-      buildArgs: {
-        INSTALL_PACKAGES: packages.join(' '),
-        NODE_VERSION: node_version,
-        PACKAGE_TYPE: esm ? 'module' : 'commonjs',
-      },
-    })
+    const result = await runNodeProcess({ code, timeout, packages, esm })
 
-    if (!buildResult.success || !buildResult.data) {
-      return formatErrorResult(buildResult.error ?? 'Failed to build image', 0)
-    }
-
-    // Run container with the docker library
-    const result = await runContainer({
-      image: buildResult.data,
-      code,
-      cmd: ['-'],
-      timeout,
-      memory: `${MAX_MEM_MB}m`,
-      cpus: MAX_CPU,
-      networkMode: 'none',
-    })
-
-    // Format and return result
     return formatExecutionResult({
       exitCode: result.exitCode,
       stdout: result.stdout,

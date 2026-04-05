@@ -9,6 +9,8 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "noEmit": true,
+    "outDir": "./dist",
     "types": ["bun-types", "node"]
   }
 }
