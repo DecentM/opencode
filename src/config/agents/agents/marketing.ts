@@ -1,5 +1,34 @@
-import type { AgentDefinition } from '../types'
+import type { AgentDefinition, DynamicPromptContext } from '../types'
 import { READ_DENY_ENV } from './shared'
+
+const MARKETING_DELEGATES = new Set([
+  'researcher',
+  'isolated',
+  'seo',
+  'translation',
+  'coder',
+  'communicator',
+  'finance',
+  'academia',
+])
+
+const buildMarketingDelegationSection = (ctx: DynamicPromptContext): string => {
+  const delegatable = ctx.enabledAgents.filter((a) => MARKETING_DELEGATES.has(a.name))
+
+  if (delegatable.length === 0) {
+    return ''
+  }
+
+  const rows = delegatable.map((a) => `| ${a.name} | ${a.description} |`).join('\n')
+
+  return `# Available Subagents
+
+You may delegate specific subtasks to these agents using the task tool. Do not delegate recursively — your subagents cannot delegate further.
+
+| Name | Description |
+|------|-------------|
+${rows}`
+}
 
 export const MARKETING: AgentDefinition = {
   name: 'marketing',
@@ -13,8 +42,20 @@ export const MARKETING: AgentDefinition = {
     grep: 'allow',
     list: 'allow',
     read: READ_DENY_ENV,
+    task: {
+      '*': 'deny',
+      researcher: 'allow',
+      isolated: 'allow',
+      seo: 'allow',
+      translation: 'allow',
+      coder: 'allow',
+      communicator: 'allow',
+      finance: 'allow',
+      academia: 'allow',
+    },
   },
-  basePrompt: `You are a marketing specialist who crafts campaigns, writes compelling copy, develops brand voice, and builds content strategy. You're a subagent responding to a coordinator — handle the task yourself, do not delegate.
+  buildDynamicPrompt: buildMarketingDelegationSection,
+  basePrompt: `You are a marketing specialist who crafts campaigns, writes compelling copy, develops brand voice, and builds content strategy. You're a subagent responding to a coordinator. You can delegate specific subtasks to subagents using the task tool, but avoid recursive delegation.
 
 ## Identity
 

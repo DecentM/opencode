@@ -1,5 +1,25 @@
-import type { AgentDefinition } from '../types'
+import type { AgentDefinition, DynamicPromptContext } from '../types'
 import { READ_DENY_ENV } from './shared'
+
+const SCIENCE_DELEGATES = new Set(['researcher', 'isolated'])
+
+const buildScienceDelegationSection = (ctx: DynamicPromptContext): string => {
+  const delegatable = ctx.enabledAgents.filter((a) => SCIENCE_DELEGATES.has(a.name))
+
+  if (delegatable.length === 0) {
+    return ''
+  }
+
+  const rows = delegatable.map((a) => `| ${a.name} | ${a.description} |`).join('\n')
+
+  return `# Available Subagents
+
+You may delegate specific subtasks to these agents using the task tool. Do not delegate recursively — your subagents cannot delegate further.
+
+| Name | Description |
+|------|-------------|
+${rows}`
+}
 
 export const SCIENCE: AgentDefinition = {
   name: 'science',
@@ -13,8 +33,14 @@ export const SCIENCE: AgentDefinition = {
     grep: 'allow',
     list: 'allow',
     read: READ_DENY_ENV,
+    task: {
+      '*': 'deny',
+      researcher: 'allow',
+      isolated: 'allow',
+    },
   },
-  basePrompt: `You are a science specialist who analyses research, generates hypotheses, designs experiments, and writes about science across disciplines. You're a subagent responding to a coordinator — handle the task yourself, do not delegate.
+  buildDynamicPrompt: buildScienceDelegationSection,
+  basePrompt: `You are a science specialist who analyses research, generates hypotheses, designs experiments, and writes about science across disciplines. You're a subagent responding to a coordinator. You can delegate specific subtasks to subagents using the task tool, but avoid recursive delegation.
 
 ## Identity
 

@@ -1,5 +1,32 @@
-import type { AgentDefinition } from '../types'
+import type { AgentDefinition, DynamicPromptContext } from '../types'
 import { READ_DENY_ENV } from './shared'
+
+const ACADEMIA_DELEGATES = new Set([
+  'researcher',
+  'communicator',
+  'isolated',
+  'math',
+  'science',
+  'translation',
+])
+
+const buildAcademiaDelegationSection = (ctx: DynamicPromptContext): string => {
+  const delegatable = ctx.enabledAgents.filter((a) => ACADEMIA_DELEGATES.has(a.name))
+
+  if (delegatable.length === 0) {
+    return ''
+  }
+
+  const rows = delegatable.map((a) => `| ${a.name} | ${a.description} |`).join('\n')
+
+  return `# Available Subagents
+
+You may delegate specific subtasks to these agents using the task tool. Do not delegate recursively — your subagents cannot delegate further.
+
+| Name | Description |
+|------|-------------|
+${rows}`
+}
 
 export const ACADEMIA: AgentDefinition = {
   name: 'academia',
@@ -13,8 +40,18 @@ export const ACADEMIA: AgentDefinition = {
     grep: 'allow',
     list: 'allow',
     read: READ_DENY_ENV,
+    task: {
+      '*': 'deny',
+      researcher: 'allow',
+      communicator: 'allow',
+      isolated: 'allow',
+      math: 'allow',
+      science: 'allow',
+      translation: 'allow',
+    },
   },
-  basePrompt: `You are an academic research specialist who conducts literature reviews, analyses papers, manages citations, writes academically, and advises on research methodology. You're a subagent responding to a coordinator — handle the task yourself, do not delegate.
+  buildDynamicPrompt: buildAcademiaDelegationSection,
+  basePrompt: `You are an academic research specialist who conducts literature reviews, analyses papers, manages citations, writes academically, and advises on research methodology. You're a subagent responding to a coordinator. You can delegate specific subtasks to subagents using the task tool, but avoid recursive delegation.
 
 ## Identity
 

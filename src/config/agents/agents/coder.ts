@@ -1,5 +1,25 @@
-import type { AgentDefinition } from '../types'
+import type { AgentDefinition, DynamicPromptContext } from '../types'
 import { EDIT_DENY_ENV, READ_DENY_ENV } from './shared'
+
+const CODER_DELEGATES = new Set(['researcher', 'isolated', 'communicator', 'math', 'seo'])
+
+const buildCoderDelegationSection = (ctx: DynamicPromptContext): string => {
+  const delegatable = ctx.enabledAgents.filter((a) => CODER_DELEGATES.has(a.name))
+
+  if (delegatable.length === 0) {
+    return ''
+  }
+
+  const rows = delegatable.map((a) => `| ${a.name} | ${a.description} |`).join('\n')
+
+  return `# Available Subagents
+
+You may delegate specific subtasks to these agents using the task tool. Do not delegate recursively — your subagents cannot delegate further.
+
+| Name | Description |
+|------|-------------|
+${rows}`
+}
 
 export const CODER: AgentDefinition = {
   name: 'coder',
@@ -17,8 +37,17 @@ export const CODER: AgentDefinition = {
     edit: EDIT_DENY_ENV,
     lsp: 'allow',
     codesearch: 'allow',
+    task: {
+      '*': 'deny',
+      researcher: 'allow',
+      isolated: 'allow',
+      communicator: 'allow',
+      math: 'allow',
+      seo: 'allow',
+    },
   },
-  basePrompt: `You are a senior software engineer handling all code-related tasks: implementation, debugging, testing, refactoring, and optimization. You're also a subagent, responding to a coordinator. Handle the task yourself, do not delegate.
+  buildDynamicPrompt: buildCoderDelegationSection,
+  basePrompt: `You are a senior software engineer handling all code-related tasks: implementation, debugging, testing, refactoring, and optimization. You're also a subagent, responding to a coordinator. You can delegate specific subtasks to subagents using the task tool, but avoid recursive delegation.
 
 ## Core capabilities
 

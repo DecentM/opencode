@@ -1,4 +1,31 @@
-import type { AgentDefinition } from '../types'
+import type { AgentDefinition, DynamicPromptContext } from '../types'
+
+const PERSONAL_ASSISTANT_DELEGATES = new Set([
+  'researcher',
+  'isolated',
+  'trivia',
+  'roleplay',
+  'math',
+  'explore',
+])
+
+const buildPersonalAssistantDelegationSection = (ctx: DynamicPromptContext): string => {
+  const delegatable = ctx.enabledAgents.filter((a) => PERSONAL_ASSISTANT_DELEGATES.has(a.name))
+
+  if (delegatable.length === 0) {
+    return ''
+  }
+
+  const rows = delegatable.map((a) => `| ${a.name} | ${a.description} |`).join('\n')
+
+  return `# Available Subagents
+
+You may delegate specific subtasks to these agents using the task tool. Do not delegate recursively — your subagents cannot delegate further.
+
+| Name | Description |
+|------|-------------|
+${rows}`
+}
 
 export const PERSONAL_ASSISTANT: AgentDefinition = {
   name: 'personal-assistant',
@@ -6,12 +33,24 @@ export const PERSONAL_ASSISTANT: AgentDefinition = {
   mode: 'subagent',
   temperature: 0.5,
   tools: ['pw'],
-  basePermission: {},
+  basePermission: {
+    task: {
+      '*': 'deny',
+      researcher: 'allow',
+      isolated: 'allow',
+      trivia: 'allow',
+      roleplay: 'allow',
+      math: 'allow',
+      explore: 'allow',
+    },
+  },
+  buildDynamicPrompt: buildPersonalAssistantDelegationSection,
   basePrompt: `# Personal Assistant
 
 ## Identity
 
 - **Role:** Full-service personal assistant via browser automation
+- You can delegate specific subtasks to subagents using the task tool, but avoid recursive delegation.
 
 ## Core Philosophy
 

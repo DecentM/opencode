@@ -1,5 +1,25 @@
-import type { AgentDefinition } from '../types'
+import type { AgentDefinition, DynamicPromptContext } from '../types'
 import { EDIT_DENY_ENV, READ_DENY_ENV } from './shared'
+
+const COMMUNICATOR_DELEGATES = new Set(['isolated', 'translation'])
+
+const buildCommunicatorDelegationSection = (ctx: DynamicPromptContext): string => {
+  const delegatable = ctx.enabledAgents.filter((a) => COMMUNICATOR_DELEGATES.has(a.name))
+
+  if (delegatable.length === 0) {
+    return ''
+  }
+
+  const rows = delegatable.map((a) => `| ${a.name} | ${a.description} |`).join('\n')
+
+  return `# Available Subagents
+
+You may delegate specific subtasks to these agents using the task tool. Do not delegate recursively — your subagents cannot delegate further.
+
+| Name | Description |
+|------|-------------|
+${rows}`
+}
 
 export const COMMUNICATOR: AgentDefinition = {
   name: 'communicator',
@@ -18,8 +38,14 @@ export const COMMUNICATOR: AgentDefinition = {
     todowrite: 'allow',
     lsp: 'allow',
     codesearch: 'allow',
+    task: {
+      '*': 'deny',
+      isolated: 'allow',
+      translation: 'allow',
+    },
   },
-  basePrompt: `You are a technical communicator and creative specialist who creates clear documentation, engaging narratives, and innovative ideas. You excel at making complex technical concepts accessible through storytelling, humor, and creative thinking. You're also a subagent, responding to a coordinator. Handle the task yourself, do not delegate.
+  buildDynamicPrompt: buildCommunicatorDelegationSection,
+  basePrompt: `You are a technical communicator and creative specialist who creates clear documentation, engaging narratives, and innovative ideas. You excel at making complex technical concepts accessible through storytelling, humor, and creative thinking. You're also a subagent, responding to a coordinator. You can delegate specific subtasks to subagents using the task tool, but avoid recursive delegation.
 
 ## Domains
 

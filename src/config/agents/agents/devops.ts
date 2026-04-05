@@ -1,5 +1,25 @@
-import type { AgentDefinition } from '../types'
+import type { AgentDefinition, DynamicPromptContext } from '../types'
 import { EDIT_DENY_ENV, READ_DENY_ENV } from './shared'
+
+const DEVOPS_DELEGATES = new Set(['coder', 'explore', 'git', 'isolated', 'researcher', 'reviewer'])
+
+const buildDevopsDelegationSection = (ctx: DynamicPromptContext): string => {
+  const delegatable = ctx.enabledAgents.filter((a) => DEVOPS_DELEGATES.has(a.name))
+
+  if (delegatable.length === 0) {
+    return ''
+  }
+
+  const rows = delegatable.map((a) => `| ${a.name} | ${a.description} |`).join('\n')
+
+  return `# Available Subagents
+
+You may delegate specific subtasks to these agents using the task tool. Do not delegate recursively — your subagents cannot delegate further.
+
+| Name | Description |
+|------|-------------|
+${rows}`
+}
 
 export const DEVOPS: AgentDefinition = {
   name: 'devops',
@@ -17,8 +37,18 @@ export const DEVOPS: AgentDefinition = {
     edit: EDIT_DENY_ENV,
     lsp: 'allow',
     codesearch: 'allow',
+    task: {
+      '*': 'deny',
+      coder: 'allow',
+      explore: 'allow',
+      git: 'allow',
+      isolated: 'allow',
+      researcher: 'allow',
+      reviewer: 'allow',
+    },
   },
-  basePrompt: `You are a DevOps engineer with expertise in modern infrastructure, containers, and automation. You're also a subagent, responding to a coordinator. Handle the task yourself, do not delegate.
+  buildDynamicPrompt: buildDevopsDelegationSection,
+  basePrompt: `You are a DevOps engineer with expertise in modern infrastructure, containers, and automation. You're also a subagent, responding to a coordinator. You can delegate specific subtasks to subagents using the task tool, but avoid recursive delegation.
 
 ## Your domains
 

@@ -1,5 +1,25 @@
-import type { AgentDefinition } from '../types'
+import type { AgentDefinition, DynamicPromptContext } from '../types'
 import { EDIT_DENY_ENV, READ_DENY_ENV } from './shared'
+
+const GIT_DELEGATES = new Set(['explore', 'isolated', 'researcher'])
+
+const buildGitDelegationSection = (ctx: DynamicPromptContext): string => {
+  const delegatable = ctx.enabledAgents.filter((a) => GIT_DELEGATES.has(a.name))
+
+  if (delegatable.length === 0) {
+    return ''
+  }
+
+  const rows = delegatable.map((a) => `| ${a.name} | ${a.description} |`).join('\n')
+
+  return `# Available Subagents
+
+You may delegate specific subtasks to these agents using the task tool. Do not delegate recursively — your subagents cannot delegate further.
+
+| Name | Description |
+|------|-------------|
+${rows}`
+}
 
 export const GIT: AgentDefinition = {
   name: 'git',
@@ -17,8 +37,15 @@ export const GIT: AgentDefinition = {
     edit: EDIT_DENY_ENV,
     lsp: 'allow',
     codesearch: 'allow',
+    task: {
+      '*': 'deny',
+      explore: 'allow',
+      isolated: 'allow',
+      researcher: 'allow',
+    },
   },
-  basePrompt: `You are a Git expert who helps with complex version control scenarios and best practices. You're also a subagent, responding to a coordinator. Handle the task yourself, do not delegate.
+  buildDynamicPrompt: buildGitDelegationSection,
+  basePrompt: `You are a Git expert who helps with complex version control scenarios and best practices. You're also a subagent, responding to a coordinator. You can delegate specific subtasks to subagents using the task tool, but avoid recursive delegation.
 
 ## Expertise
 
