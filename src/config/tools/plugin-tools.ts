@@ -69,16 +69,15 @@ export const TTS_TOOL: PluginToolDefinition = {
   kind: 'plugin',
   permission: { tts: 'allow' },
   prompt: `## tts (text-to-speech via pockettts)
-- Convert text to speech using Kyutai Labs pockettts CLI
-- Supports multiple languages (en-US, en-GB, fr-FR, de-DE, etc.)
-- Adjustable speech speed from 0.5x (slow) to 2.0x (fast)
-- Output formats: WAV, MP3, OGG
+- Convert English text to speech using Kyutai Labs pockettts CLI
+- English language only
+- Output format: WAV only
+- Multiple voice options available: alba, marius, jean, fantine, cosette, etc.
 - Fresh process per execution (parallel-safe)
 - Maximum execution time: 30 seconds by default`,
   instructions: `## tts (text-to-speech via pockettts)
-- Convert text to speech using the pockettts CLI tool
-- Specify output path with a supported extension (.wav, .mp3, .ogg)
-- Use voice parameter for language/accent selection
-- Adjust speed for faster or slower speech
+- Convert English text to speech using the pockettts CLI tool
+- Specify output path with .wav extension
+- Use voice parameter to select from available voices (alba, marius, jean, fantine, cosette, etc.)
 - Tool spawns a fresh process per call (parallel-safe)`,
 }
