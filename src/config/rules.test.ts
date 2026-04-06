@@ -54,7 +54,7 @@ describe('loadRules', () => {
 
     if (allRule == null) throw new Error('expected all rule')
 
-    expect(allRule.content).toContain('## pw (browser automation)')
+    expect(allRule.content).toContain('## browser_* (browser automation)')
     expect(allRule.content).toContain('# Tools')
   })
 
