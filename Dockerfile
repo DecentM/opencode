@@ -41,8 +41,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # OCR tool
     tesseract-ocr \
     tesseract-ocr-eng \
-    # Chromium for Playwright headless (system install avoids playwright download)
-    chromium \
     # Needed for manual bootstrapping
     gh ssh \
     # For models
@@ -110,7 +108,7 @@ RUN curl -fsSL "https://github.com/sst/opencode/releases/latest/download/opencod
 #
 #    figma-developer-mcp: Framelink Figma MCP, spawned by opencode on demand
 #    slack-mcp-server:    downloads a Go binary at install time (needs network)
-#    @playwright/mcp:     Playwright MCP server; uses system Chromium via env var
+#    @playwright/mcp:     Playwright MCP server; Chrome installed via npx playwright
 # ─────────────────────────────────────────────────────────────────────────────
 
 ENV NODE_ENV=production
@@ -120,16 +118,16 @@ RUN npm install -g --no-fund --no-audit \
     slack-mcp-server \
     @playwright/mcp
 
+# Install Chrome for Playwright MCP
+RUN npx playwright install chrome
+
 # ─────────────────────────────────────────────────────────────────────────────
-# 6. Playwright — point at system Chromium so we don't download a second copy
+# 6. Playwright — Chrome is installed via npx playwright install chrome
 #
-#    Debian's chromium package installs the binary at /usr/bin/chromium.
-#    PLAYWRIGHT_BROWSERS_PATH is set to a dummy path so playwright doesn't
-#    try to manage its own browser store.
+#    @playwright/mcp requires Chrome to be installed via Playwright's
+#    browser management, not system Chromium.
 # ─────────────────────────────────────────────────────────────────────────────
 
-ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
-ENV PLAYWRIGHT_BROWSERS_PATH=/usr/lib/playwright-browsers
 ENV PLAYWRIGHT_HEADLESS=true
 
 # ─────────────────────────────────────────────────────────────────────────────

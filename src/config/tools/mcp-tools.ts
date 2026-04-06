@@ -29,19 +29,19 @@ export const PW_TOOL: McpToolDefinition = {
     enabled: true,
   },
   permission: {
-    'pw*': 'allow',
-    'pw*_take_screenshot': 'deny',
-    'pw*_snapshot': 'deny',
+    'browser_*': 'allow',
+    browser_take_screenshot: 'deny',
+    browser_snapshot: 'deny',
   },
   prompt: `## pw (browser automation)
 - Playwright-based headless browser automation for web scraping and interaction
 - Cookies/state persist across sessions
 - Always call \`browser_close\` when done to free resources
 - If a page snapshot is unreadable or too large, try resizing to phone size — mobile UIs tend to be lighter`,
-  instructions: `## pw (browser automation)
-- Use pw to retrieve content, and interact with websites
+  instructions: `## browser_* (browser automation)
+- Use browser_navigate, browser_click, etc. to retrieve content and interact with websites
 
-### Use \`pw\` (default) when:
+### Use browser tools (default) when:
 - Scraping public content
 - Automated data collection
 - Tasks that don't require user interaction
